@@ -1146,6 +1146,38 @@ namespace Microsoft.Data.Entity.Tests.ChangeTracking
             Assert.Null(entry.TryGetSidecar(sidecar.Name));
         }
 
+        [Fact]
+        public void Changing_state_from_modified_to_unchanged_triggers_rollback()
+        {
+            var model = BuildModel();
+            var entityType = model.GetEntityType(typeof(SomeEntity).FullName);
+            var idProperty = entityType.GetProperty("Id");
+            var nameProperty = entityType.GetProperty("Name");
+
+            var entry = CreateStateEntry(
+                TestHelpers.CreateContextServices(model),
+                entityType,
+                new ObjectArrayValueReader(new object[] { 1, "Kool" }));
+
+            var sidecar = entry.AddSidecar(new TheWasp(entry, new[] { idProperty }, autoCommit: true));
+            entry.SetEntityState(EntityState.Modified);
+
+            sidecar[idProperty] = 77;
+
+            Assert.Equal(EntityState.Modified, entry.EntityState);
+            Assert.Equal(1, entry[idProperty]);
+            Assert.Equal(77, sidecar[idProperty]);
+            Assert.Equal("Kool", entry[nameProperty]);
+
+            entry.SetEntityState(EntityState.Unchanged, false);
+
+            Assert.Equal(1, entry[idProperty]);
+
+            Assert.Equal(EntityState.Unchanged, entry.EntityState);
+
+            Assert.Null(entry.TryGetSidecar(sidecar.Name));
+        }
+
         private class TheWasp : DictionarySidecar
         {
             private readonly bool _transparentRead;

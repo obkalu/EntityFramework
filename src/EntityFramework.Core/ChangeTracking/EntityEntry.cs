@@ -26,19 +26,19 @@ namespace Microsoft.Data.Entity.ChangeTracking
 
         public virtual EntityState State => StateEntry.EntityState;
 
-        public virtual void SetState(EntityState entityState)
+        public virtual void SetState(EntityState entityState, bool acceptChanges = true)
         {
             Check.IsDefined(entityState, "entityState");
 
-            StateEntry.SetEntityState(entityState);
+            StateEntry.SetEntityState(entityState, acceptChanges);
         }
 
         public virtual Task SetStateAsync(
-            EntityState entityState, CancellationToken cancellationToken = default(CancellationToken))
+            EntityState entityState, CancellationToken cancellationToken = default(CancellationToken), bool acceptChanges = true)
         {
             Check.IsDefined(entityState, "entityState");
 
-            return StateEntry.SetEntityStateAsync(entityState, cancellationToken);
+            return StateEntry.SetEntityStateAsync(entityState, cancellationToken, acceptChanges);
         }
 
         public virtual StateEntry StateEntry { get; }
